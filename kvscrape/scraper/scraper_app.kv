@@ -1,4 +1,5 @@
 #:import Factory kivy.factory.Factory
+#:import ListAdapter kivy.adapters.listadapter.ListAdapter
 <ScraperScreen>:
     name: 'scraper'
     id: scraper_root
@@ -103,6 +104,7 @@
                         disabled: True if selector_columns.text == "" else False
                         size_hint: 0.15, 0.1
                         pos_hint: {'top': 1}
+                        on_press: root.preview_popup(col_name=selector_columns.text)
 
             AccordionItem:
                 id: extraction_accordion
@@ -189,7 +191,7 @@
                 text: root.selector_type
                 size_hint: 0.15, 0.2
                 text: "Text"
-                values: "Link", "Text"
+                values: "Text", "URL"
                 pos_hint: {'top': 1}
 
         AnchorLayout:
@@ -215,6 +217,35 @@
                     text: "Delete"
                     on_release: root.dismiss_update(save=False, delete=True)
 
+<SelectorPreviewPopup>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+        BoxLayout:
+            orientation: 'horizontal'
+            padding: 10
+            spacing: 10
+
+            AnchorLayout:
+                anchor_y: 'center'
+                anchor_x: 'center'
+                size_hint: 0.5, 1
+
+                Label:
+                    id: results_count
+                    text: "{}".format(len(root.results))
+                    font_size: 25
+
+            BoxLayout:
+                id: results_box
+
+        Button:
+            size_hint: 0.5, 0.2
+            text: "OK"
+            on_release: root.dismiss()
+
+
 
 
 
@@ -228,6 +259,21 @@
     orientation: 'horizontal'
 
 
+<Separator@Widget>:
+    canvas:
+        Color:
+            rgba: 0.365, 0.365, 0.365, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<HSeparator@Separator>:
+    size_hint_y: None
+    height: dp(2)
+
+<VSeparator@Separator>:
+    size_hint_x: None
+    width: dp(2)
 
 
 

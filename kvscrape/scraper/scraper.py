@@ -8,6 +8,7 @@ import platform
 import glob
 import os
 
+
 from selenium.webdriver.common.by import By
 
 
@@ -39,6 +40,9 @@ Custom Selenium Waits
 
 
 class NomadDriver(object):
+
+    TEXT = 'text'
+    URL = 'href'
 
     def __init__(self, service_folder):
         self.service_folder = os.path.realpath(service_folder)
@@ -81,6 +85,12 @@ class NomadDriver(object):
         except:
             return None
         return elements
+
+    def extract_from_elements(self, elements, attribute):
+        results = []
+        for e in elements:
+            results.append(e.get_attribute(attribute))
+        return results
 
     def start_driver(self):
         driver = webdriver.Chrome(executable_path=self.service_path, chrome_options=self.driver_options)

@@ -1,8 +1,11 @@
 from kivy.uix.accordion import AccordionItem, Accordion
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
+from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ListProperty, AliasProperty
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
@@ -94,10 +97,9 @@ class ScraperScreen(Screen):
                     setattr(matched_selector, k, getattr(widget, k, ""))
                 self.refresh_selectors()
 
-
     def selector_popup(self, col_name, kind='edit', *args, **kwargs):
         """
-        Handle opening a Popup
+        Handle opening a Popup for creation or editing a selector
         """
         col_num, col_name = col_name.split(": ")
         col_num = int(col_num)
@@ -118,6 +120,35 @@ class ScraperScreen(Screen):
         popup.bind(on_dismiss=self.popup_entry)
         popup.open()
 
+    def preview_popup(self, col_name, *args, **kwargs):
+        """
+        Handle opening a Popup for previewing results of a selector
+        """
+        col_num, col_name = col_name.split(": ")
+        col_num = int(col_num)
+
+        # Lookup value for this selector
+        matched_selector = next((s for s in self.selectors if s.column_num == col_num), None)
+        if not matched_selector:
+            return
+
+        by = 'css selector'
+        results = self.scraper.find_elements(by, matched_selector.selector_text)
+
+        # Extract desired information
+        extract_type = getattr(self.scraper, matched_selector.selector_type.upper(), "text")
+        results_data = self.scraper.extract_from_elements(results, extract_type)
+
+        popup = SelectorPreviewPopup(title=col_name)
+        popup.results = results_data
+        popup.selector_text = matched_selector.selector_text
+        popup.column_name = col_name
+        popup.populate_results()
+        popup.open()
+
+
+
+
 
 class Selector(object):
 
@@ -130,6 +161,7 @@ class Selector(object):
     @property
     def value(self):
         return "{}: {}".format(self.column_num, self.column_name)
+
 
 class ScreenNav(BoxLayout):
     pass
@@ -187,6 +219,29 @@ class SelectorPopup(Popup):
         else:
             self.was_deleted = False
         self.dismiss()
+
+
+class SelectorPreviewPopup(Popup):
+
+    results = ListProperty()
+    selector_text = StringProperty()
+    column_name = StringProperty()
+
+    def __init__(self, **kwargs):
+        super(SelectorPreviewPopup, self).__init__(**kwargs)
+
+    def populate_results(self):
+        layout = GridLayout(cols=1, spacing=5, size_hint_y=None)
+        layout.bind(minimum_height=layout.setter('height'))
+        for r in self.results:
+            l = Label(text=r)
+            layout.add_widget(l)
+        box = self.results_box
+        scroll_view = ScrollView(size_hint=(1, None), size=(box.width, box.height))
+        scroll_view.add_widget(layout)
+        box.add_widget(scroll_view)
+
+
 
 
 
