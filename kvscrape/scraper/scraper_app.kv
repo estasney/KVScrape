@@ -1,0 +1,189 @@
+#:import Factory kivy.factory.Factory
+<ScraperScreen>:
+    name: 'scraper'
+    id: scraper_root
+    scraper_actions: scraper_actions
+    scraper_actions_scraper: scraper_view
+    scraper_actions_selector: selector_view
+    scraper_status_bar: scraper_status_bar
+
+
+
+    BoxLayout:
+        orientation: 'vertical'
+        ScreenNav:
+            size_hint_y: 0.1
+            pos_hint: {'top': 0}
+            ActionBar:
+                pos_hint: {'top': 1}
+                ActionView:
+                    use_separator: True
+                    ActionPrevious:
+                        title: app.APP_NAME
+                        with_previous: True
+                    ActionOverflow:
+                    ActionGroup:
+                        ActionButton:
+                            text: 'New'
+                        ActionButton:
+                            text: 'Load'
+
+        ScraperActions:
+            id: scraper_actions
+            size_hint_y: 0.8
+            size: self.size
+            pos: self.pos
+            orientation: 'vertical'
+            scraper_view: scraper_view
+            selector_view: selector_view
+            extraction_accordion: extraction_accordion
+            steps_accordion: steps_accordion
+
+            ScraperView:
+                id: scraper_view
+                title: self.TITLE
+                BoxLayout:
+                    orientation: 'horizontal'
+                    padding: 10
+                    spacing: 20
+
+                    GreenButton:
+
+                        text: "Launch"
+                        size_hint: 0.3, 0.1
+                        pos_hint: {'top': 1, 'x': 0.4}
+                        disabled: root.scraper_online_
+                        on_release: root.launch()
+
+
+                    RedButton:
+
+                        text: "Shutdown"
+                        size_hint: 0.3, 0.1
+                        pos_hint: {'top': 1, 'x': 0.6}
+                        disabled: True if root.scraper_online_ is False else False
+                        on_release: root.shutdown()
+
+            SelectorView:
+                id: selector_view
+
+                title: self.TITLE
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    padding: 10
+                    spacing: 20
+
+                    Spinner:
+                        id: selector_columns
+                        text: "New Column"
+                        size_hint: 0.5, 0.1
+                        pos_hint: {'top': 1}
+
+                    GreenButton:
+                        id: new_col
+                        text: "Edit"
+                        size_hint: 0.15, 0.1
+                        pos_hint: {'top': 1}
+                        on_press: root.selector_popup(col_name=selector_columns.text)
+
+                    GreenButton:
+                        id: new_col
+                        text: "Preview"
+                        size_hint: 0.15, 0.1
+                        pos_hint: {'top': 1}
+
+            AccordionItem:
+                id: extraction_accordion
+                disabled: True if root.scraper_online_ is False else False
+                title: "Extraction"
+            AccordionItem:
+                id: steps_accordion
+                disabled: True if root.scraper_online_ is False else False
+                title: "Steps"
+
+        ScraperStatusBar:
+            id: scraper_status_bar
+            size_hint_y: 0.1
+            pos_hint: {'top': 1}
+            status_label: status_label
+            canvas.before:
+                Color:
+                    rgb: (0.1, 0.1, 0.1)
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            rows: 1
+            orientation: 'horizontal'
+
+            StatusComponent:
+                size_hint_x: 0.2
+                Label:
+                    text: app.clock_time
+                    font_size: 20
+            VSeparator:
+            StatusComponent:
+                size_hint_x: 0.2
+                Label:
+                    id: status_label
+                    text: root.scraper_status
+                    markup: True
+                    font_size: 20
+
+
+<SelectorPopup>:
+    auto_dismiss: False
+    selector_text: selector_text.text
+    selector_type: selector_type.text
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 20
+        BoxLayout:
+            size_hint: 1, 0.5
+            orientation: 'horizontal'
+            Label:
+                size_hint: 0.15, 0.2
+                text: "Selector: "
+                pos_hint: {'top': 1}
+            TextInput:
+                id: selector_text
+                size_hint: 0.5, 0.2
+                multiline: False
+                pos_hint: {'top': 1}
+            Label:
+                size_hint: 0.15, 0.2
+                text: "Extract: "
+                pos_hint: {'top': 1}
+            Spinner:
+                id: selector_type
+                size_hint: 0.15, 0.2
+                text: "Text"
+                values: "Link", "Text"
+                pos_hint: {'top': 1}
+
+        AnchorLayout:
+            anchor_x: 'center'
+            anchor_y : 'bottom'
+            Button:
+                size_hint: 0.5, 0.2
+                text: "Close"
+
+
+                on_release: root.dismiss()
+
+
+
+
+
+
+<StatusComponent@BoxLayout>:
+    size: self.size
+    pos: self.pos
+    orientation: 'horizontal'
+
+
+
+
+
+
