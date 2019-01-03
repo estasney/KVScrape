@@ -3,7 +3,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ListProperty
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from kvscrape.buttons import *
@@ -32,6 +32,8 @@ class ScraperScreen(Screen):
 
     scraper = None
 
+    selectors = ListProperty()
+
     def launch(self):
         self.scraper = NomadDriver(service_folder=os.path.realpath("scraper/resources"))
         self.scraper_online_ = True
@@ -59,12 +61,30 @@ class ScraperScreen(Screen):
         print(results)
 
     def popup_entry(self, widget, *args, **kwargs):
-        print(widget.selector_text)
+        selector = SelectorColumn(column_name=widget.column_name, selector_text=widget.selector_text,
+                                  selector_type=widget.selector_type)
+        self.selectors.append(selector)
+
 
     def selector_popup(self, col_name, *args, **kwargs):
-        popup = SelectorPopup(title= col_name)
+        popup = SelectorPopup(title=col_name)
         popup.bind(on_dismiss=self.popup_entry)
         popup.open()
+
+
+class SelectorColumn(object):
+
+    def __init__(self, column_name, selector_text, selector_type):
+        self.column_name = column_name
+        self.selector_text = selector_text
+        self.selector_type = selector_type
+
+    @property
+    def value(self):
+        if self.column_name and self.column_name != "":
+            return self.column_name
+        else:
+            return self.selector_text
 
 
 class ScreenNav(BoxLayout):

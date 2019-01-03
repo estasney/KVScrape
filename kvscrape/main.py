@@ -29,31 +29,12 @@ class MainApp(App):
     clock_time = StringProperty()
     resource_dir = StringProperty()
 
-
-
-
-
     def get_time(self, *args, **kwargs):
         self.clock_time = datetime.strftime(datetime.now(), "%I:%M:%S %p")
-
-    def on_scraper_status(self, *args, **kwargs):
-        if self.scraper_status == 'Online':
-            self.scraper_status_color = self.GREEN_TEXT
-        else:
-            self.scraper_status_color = self.RED_TEXT
-        self.switch_accordion()
-
-
-    def app_update(self, *args, **kwargs):
-        for k, v in kwargs.items():
-            print(k, v)
-            setattr(self, k, v)
 
     def build(self):
         self.get_time()
         Clock.schedule_interval(self.get_time, 0.1)
-
-
 
 
 if __name__ == "__main__":

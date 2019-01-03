@@ -77,6 +77,7 @@
                     Spinner:
                         id: selector_columns
                         text: "New Column"
+                        values: [s.value for s in root.selectors]
                         size_hint: 0.5, 0.1
                         pos_hint: {'top': 1}
 
@@ -135,10 +136,26 @@
     auto_dismiss: False
     selector_text: selector_text.text
     selector_type: selector_type.text
+    column_name: column_name.text
     BoxLayout:
         orientation: 'vertical'
         padding: 10
         spacing: 20
+
+        BoxLayout:
+
+            orientation: 'horizontal'
+            size_hint: 0.8, 0.2
+
+            Label:
+                text: "Name: "
+                size_hint: 0.1, 0.8
+            TextInput:
+                id: column_name
+                multiline: False
+                size_hint: 0.45, 0.6
+
+
         BoxLayout:
             size_hint: 1, 0.5
             orientation: 'horizontal'
@@ -165,12 +182,18 @@
         AnchorLayout:
             anchor_x: 'center'
             anchor_y : 'bottom'
-            Button:
-                size_hint: 0.5, 0.2
-                text: "Close"
+            BoxLayout:
+                orientation: 'horizontal'
 
+                Button:
+                    size_hint: 0.5, 0.2
+                    text: "Close"
+                    on_release: root.dismiss()
 
-                on_release: root.dismiss()
+                Button:
+                    size_hint: 0.5, 0.2
+                    text: "Save"
+                    on_release: root.dismiss()
 
 
 
