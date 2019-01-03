@@ -3,7 +3,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ListProperty
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ListProperty, AliasProperty
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from kvscrape.buttons import *
@@ -60,32 +60,76 @@ class ScraperScreen(Screen):
         results = self.scraper.find_element("xpath", selector)
         print(results)
 
+    def refresh_selectors(self):
+        selector_copy = self.selectors
+        self.selectors = []
+        selector_copy.sort(key=lambda x: x.column_num)
+        self.selectors = selector_copy
+
     def popup_entry(self, widget, *args, **kwargs):
-        selector = SelectorColumn(column_name=widget.column_name, selector_text=widget.selector_text,
-                                  selector_type=widget.selector_type)
-        self.selectors.append(selector)
+
+        if not widget.was_saved and not widget.was_deleted:
+            return
+
+        if widget.was_deleted:
+            matched_selector = next((s for s in self.selectors if s.column_num == widget.column_num), None)
+            selector_copy = list(self.selectors)
+            retained_selectors = [s for s in selector_copy if s.column_num != matched_selector.column_num]
+            retained_selectors.sort(key=lambda x: x.column_num)
+            # set column_num to reflect index
+            for i, rs in enumerate(retained_selectors):
+                rs.column_num = i
+            self.selectors = []
+            self.selectors = retained_selectors
+
+        else:
+            matched_selector = next((s for s in self.selectors if s.column_num == widget.column_num), None)
+
+            if not matched_selector:
+                selector = Selector(column_num=widget.column_num, column_name=widget.column_name,
+                                          selector_text=widget.selector_text, selector_type=widget.selector_type)
+                self.selectors.append(selector)
+            else:
+                for k in ['column_name', 'selector_text', 'selector_type']:
+                    setattr(matched_selector, k, getattr(widget, k, ""))
+                self.refresh_selectors()
 
 
-    def selector_popup(self, col_name, *args, **kwargs):
-        popup = SelectorPopup(title=col_name)
+    def selector_popup(self, col_name, kind='edit', *args, **kwargs):
+        """
+        Handle opening a Popup
+        """
+        col_num, col_name = col_name.split(": ")
+        col_num = int(col_num)
+        if kind == 'new':
+            popup = SelectorPopup(title=col_name)
+            popup.column_num = col_num
+
+        else:
+            matched_selector = next((s for s in self.selectors if s.column_num == col_num), None)
+            if not matched_selector:
+                popup = SelectorPopup(title=col_name)
+                popup.column_num = col_num
+            else:
+                popup = SelectorPopup(title=col_name)
+                for k in ['selector_text', 'selector_type', 'column_name', 'column_num']:
+                    setattr(popup, k, getattr(matched_selector, k))
+
         popup.bind(on_dismiss=self.popup_entry)
         popup.open()
 
 
-class SelectorColumn(object):
+class Selector(object):
 
-    def __init__(self, column_name, selector_text, selector_type):
+    def __init__(self, column_num, column_name, selector_text, selector_type):
+        self.column_num = column_num
         self.column_name = column_name
         self.selector_text = selector_text
         self.selector_type = selector_type
 
     @property
     def value(self):
-        if self.column_name and self.column_name != "":
-            return self.column_name
-        else:
-            return self.selector_text
-
+        return "{}: {}".format(self.column_num, self.column_name)
 
 class ScreenNav(BoxLayout):
     pass
@@ -119,8 +163,32 @@ class SelectorView(AccordionItem):
     def get_scraper(self):
         return App.get_running_app().scraper
 
+
 class SelectorPopup(Popup):
-    pass
+
+    selector_text = StringProperty()
+    selector_type = StringProperty()
+    column_name = StringProperty()
+    was_saved = BooleanProperty()
+    was_deleted = BooleanProperty()
+
+    column_num = -1
+
+    def __init__(self, **kwargs):
+        super(SelectorPopup, self).__init__(**kwargs)
+
+    def dismiss_update(self, *largs, **kwargs):
+        if 'save' in kwargs:
+            self.was_saved = kwargs.pop('save')
+        else:
+            self.was_saved = False
+        if 'delete' in kwargs:
+            self.was_deleted = kwargs.pop('delete')
+        else:
+            self.was_deleted = False
+        self.dismiss()
+
+
 
 
 
