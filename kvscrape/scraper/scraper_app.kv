@@ -67,7 +67,7 @@
 
             SelectorView:
                 id: selector_view
-
+                disabled: True if root.scraper_online_ is False else False
                 title: self.TITLE
 
                 BoxLayout:
@@ -88,7 +88,7 @@
                         text: "New"
                         size_hint: 0.15, 0.1
                         pos_hint: {'top': 1}
-                        on_press: root.selector_popup(col_name="{}: ".format(len(root.selectors)), kind='new')
+                        on_release: root.selector_popup(col_name="{}: ".format(len(root.selectors)), kind='new')
 
                     GreenButton:
                         id: new_col
@@ -96,7 +96,7 @@
                         disabled: True if selector_columns.text == "" else False
                         size_hint: 0.15, 0.1
                         pos_hint: {'top': 1}
-                        on_press: root.selector_popup(col_name=selector_columns.text)
+                        on_release: root.selector_popup(col_name=selector_columns.text)
 
                     GreenButton:
                         id: new_col
@@ -104,7 +104,7 @@
                         disabled: True if selector_columns.text == "" else False
                         size_hint: 0.15, 0.1
                         pos_hint: {'top': 1}
-                        on_press: root.preview_popup(col_name=selector_columns.text)
+                        on_release: root.preview_popup(col_name=selector_columns.text)
 
             AccordionItem:
                 id: extraction_accordion
@@ -248,7 +248,8 @@
 
         AnchorLayout:
             anchor_x: 'center'
-            anchor_y: 'center'
+            anchor_y: 'bottom'
+            size_hint: 1, 0.1
 
             Button:
                 size_hint: 0.5, 0.1
