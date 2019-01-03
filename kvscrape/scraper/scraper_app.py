@@ -39,6 +39,8 @@ class ScraperScreen(Screen):
 
     def launch(self):
         self.scraper = NomadDriver(service_folder=os.path.realpath("scraper/resources"))
+        self.scraper.goto("http://books.toscrape.com/")
+        self.scraper.maximize_window()
         self.scraper_online_ = True
 
     def shutdown(self):
@@ -64,7 +66,7 @@ class ScraperScreen(Screen):
         print(results)
 
     def refresh_selectors(self):
-        selector_copy = self.selectors
+        selector_copy = list(self.selectors)
         self.selectors = []
         selector_copy.sort(key=lambda x: x.column_num)
         self.selectors = selector_copy
@@ -226,18 +228,19 @@ class SelectorPreviewPopup(Popup):
     results = ListProperty()
     selector_text = StringProperty()
     column_name = StringProperty()
+    results_box = ObjectProperty()
 
     def __init__(self, **kwargs):
         super(SelectorPreviewPopup, self).__init__(**kwargs)
 
     def populate_results(self):
-        layout = GridLayout(cols=1, spacing=5, size_hint_y=None)
+        layout = GridLayout(cols=1, spacing=10, size_hint_y=1)
         layout.bind(minimum_height=layout.setter('height'))
         for r in self.results:
             l = Label(text=r)
             layout.add_widget(l)
         box = self.results_box
-        scroll_view = ScrollView(size_hint=(1, None), size=(box.width, box.height))
+        scroll_view = ScrollView(size_hint=(1, 1))
         scroll_view.add_widget(layout)
         box.add_widget(scroll_view)
 

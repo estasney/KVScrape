@@ -87,7 +87,10 @@ class NomadDriver(object):
         return elements
 
     def extract_from_elements(self, elements, attribute):
+        if not elements:
+            return None
         results = []
+
         for e in elements:
             results.append(e.get_attribute(attribute))
         return results
@@ -95,6 +98,9 @@ class NomadDriver(object):
     def start_driver(self):
         driver = webdriver.Chrome(executable_path=self.service_path, chrome_options=self.driver_options)
         return driver
+
+    def goto(self, url):
+        self.driver.get(url)
 
     def maximize_window(self):
         if self.driver:
