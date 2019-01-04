@@ -41,24 +41,29 @@ class ScraperScreen(Screen):
 
     stop = threading.Event()
 
-    def start_second_thread(self, target_function, *args):
-        threading.Thread(target=target_function, args=args).start()
+    def start_second_thread(self, target_function, *args, **kwargs):
+        threading.Thread(target=target_function, args=args, kwargs=kwargs).start()
 
-    def launch(self, *args, **kwargs):
+    def launch(self):
 
         self.start_second_thread(self._launch)
 
     def _launch(self):
         self.scraper = NomadDriver(service_folder=os.path.realpath("scraper/resources"))
-        self.scraper.goto("http://books.toscrape.com/")
-        self.scraper.maximize_window()
         self.scraper_online_ = True
+        self.scraper.goto("http://books.toscrape.com/")
+
+
         return None
 
     def shutdown(self):
+        self.start_second_thread(self._shutdown)
+
+    def _shutdown(self):
         self.scraper.shutdown()
         self.scraper = None
         self.scraper_online_ = False
+
 
     def on_scraper_online_(self, *args):
         if self.scraper_online_:
