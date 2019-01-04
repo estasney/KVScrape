@@ -2,9 +2,7 @@ from kivy.uix.accordion import AccordionItem, Accordion
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ListProperty, AliasProperty
 from kivy.uix.screenmanager import Screen
@@ -45,15 +43,12 @@ class ScraperScreen(Screen):
         threading.Thread(target=target_function, args=args, kwargs=kwargs).start()
 
     def launch(self):
-
         self.start_second_thread(self._launch)
 
     def _launch(self):
         self.scraper = NomadDriver(service_folder=os.path.realpath("scraper/resources"))
         self.scraper_online_ = True
         self.scraper.goto("http://books.toscrape.com/")
-
-
         return None
 
     def shutdown(self):
@@ -64,18 +59,18 @@ class ScraperScreen(Screen):
         self.scraper = None
         self.scraper_online_ = False
 
-
     def on_scraper_online_(self, *args):
         if self.scraper_online_:
             self.scraper_status = "Scraper: [color={label_color}]Online[/color]".format(label_color=self.GREEN_TEXT)
         else:
             self.scraper_status = "Scraper: [color={label_color}]Offline[/color]".format(label_color=self.RED_TEXT)
 
-    def preview(self, *args, **kwargs):
-        selector = kwargs['selector']
-        results = self.scraper.find_elements("xpath", selector)
-        for r in results:
-            print(r.get_attribute('href'))
+    def _preview_elements(self, selector_text, selector_type, callback):
+        by = 'css selector'
+        results = self.scraper.find_elements(by, selector_text)
+        extract_type = getattr(self.scraper, selector_type.upper(), "text")
+        results_data = self.scraper.extract_from_elements(results, extract_type)
+        callback(results_data)
 
     def select(self, *args, **kwargs):
         selector = kwargs['selector']
@@ -87,34 +82,6 @@ class ScraperScreen(Screen):
         self.selectors = []
         selector_copy.sort(key=lambda x: x.column_num)
         self.selectors = selector_copy
-
-    def popup_entry(self, widget, *args, **kwargs):
-
-        if not widget.was_saved and not widget.was_deleted:
-            return
-
-        if widget.was_deleted:
-            matched_selector = next((s for s in self.selectors if s.column_num == widget.column_num), None)
-            selector_copy = list(self.selectors)
-            retained_selectors = [s for s in selector_copy if s.column_num != matched_selector.column_num]
-            retained_selectors.sort(key=lambda x: x.column_num)
-            # set column_num to reflect index
-            for i, rs in enumerate(retained_selectors):
-                rs.column_num = i
-            self.selectors = []
-            self.selectors = retained_selectors
-
-        else:
-            matched_selector = next((s for s in self.selectors if s.column_num == widget.column_num), None)
-
-            if not matched_selector:
-                selector = Selector(column_num=widget.column_num, column_name=widget.column_name,
-                                          selector_text=widget.selector_text, selector_type=widget.selector_type)
-                self.selectors.append(selector)
-            else:
-                for k in ['column_name', 'selector_text', 'selector_type']:
-                    setattr(matched_selector, k, getattr(widget, k, ""))
-                self.refresh_selectors()
 
     def selector_popup(self, col_name, kind='edit', *args, **kwargs):
         """
@@ -136,8 +103,40 @@ class ScraperScreen(Screen):
                 for k in ['selector_text', 'selector_type', 'column_name', 'column_num']:
                     setattr(popup, k, getattr(matched_selector, k))
 
-        popup.bind(on_dismiss=self.popup_entry)
+        popup.bind(on_dismiss=self.selector_popup_entry)
         popup.open()
+
+    def selector_popup_entry(self, popup, *args, **kwargs):
+        """
+        Receives a dismissed popup and updates selectors accordingly
+        :param popup:
+        :return:
+        """
+        if not popup.was_saved and not popup.was_deleted:
+            return
+
+        if popup.was_deleted:
+            matched_selector = next((s for s in self.selectors if s.column_num == popup.column_num), None)
+            selector_copy = list(self.selectors)
+            retained_selectors = [s for s in selector_copy if s.column_num != matched_selector.column_num]
+            retained_selectors.sort(key=lambda x: x.column_num)
+            # set column_num to reflect index
+            for i, rs in enumerate(retained_selectors):
+                rs.column_num = i
+            self.selectors = []
+            self.selectors = retained_selectors
+
+        else:
+            matched_selector = next((s for s in self.selectors if s.column_num == popup.column_num), None)
+
+            if not matched_selector:
+                selector = Selector(column_num=popup.column_num, column_name=popup.column_name,
+                                    selector_text=popup.selector_text, selector_type=popup.selector_type)
+                self.selectors.append(selector)
+            else:
+                for k in ['column_name', 'selector_text', 'selector_type']:
+                    setattr(matched_selector, k, getattr(popup, k, ""))
+                self.refresh_selectors()
 
     def preview_popup(self, col_name, *args, **kwargs):
         """
@@ -151,22 +150,22 @@ class ScraperScreen(Screen):
         if not matched_selector:
             return
 
-        by = 'css selector'
-        results = self.scraper.find_elements(by, matched_selector.selector_text)
-
-        # Extract desired information
-        extract_type = getattr(self.scraper, matched_selector.selector_type.upper(), "text")
-        results_data = self.scraper.extract_from_elements(results, extract_type)
+        # Open the popup without results
+        # Popup will listen for results to be passed and will handle display
 
         popup = SelectorPreviewPopup(title=col_name)
-        popup.results = results_data
         popup.selector_text = matched_selector.selector_text
         popup.column_name = col_name
-        popup.populate_results()
         popup.open()
 
+        def callback(results):
+            popup.results = results
 
+        selector_text = matched_selector.selector_text
+        selector_type = matched_selector.selector_type
 
+        self.start_second_thread(target_function=self._preview_elements, selector_text=selector_text,
+                                 selector_type=selector_type, callback=callback)
 
 
 class Selector(object):
@@ -245,16 +244,27 @@ class SelectorPreviewPopup(Popup):
     results = ListProperty()
     selector_text = StringProperty()
     column_name = StringProperty()
+
     results_box = ObjectProperty()
+    results_count = ObjectProperty()
+
 
     def __init__(self, **kwargs):
         super(SelectorPreviewPopup, self).__init__(**kwargs)
 
+    def on_results(self, *args):
+        if len(self.results) < 1:
+            pass
+        else:
+            self.populate_results()
+
     def populate_results(self):
-        layout = GridLayout(cols=1, spacing=10, size_hint_y=1)
+        self.results_box.clear_widgets()
+
+        layout = GridLayout(cols=1, spacing=0, size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
         for r in self.results:
-            l = Label(text=r)
+            l = Label(text=r, font_size=15, size_hint_y=None)
             layout.add_widget(l)
         box = self.results_box
         scroll_view = ScrollView(size_hint=(1, 1))

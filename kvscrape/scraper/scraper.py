@@ -50,8 +50,6 @@ class NomadDriver(object):
         self.driver = self.start_driver()
         self.wait = WebDriverWait(self.driver, 20)
 
-
-
     @property
     def driver_options(self):
         chrome_options = Options()
