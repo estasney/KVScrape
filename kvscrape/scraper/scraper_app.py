@@ -8,9 +8,10 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ListProperty, AliasProperty
 from kivy.uix.screenmanager import Screen
-from kivy.clock import Clock
+from kivy.clock import Clock, mainthread
 from kvscrape.buttons import *
 import os
+import threading
 from kivy.lang import Builder
 from kivy.app import App
 from .scraper import NomadDriver
@@ -34,14 +35,25 @@ class ScraperScreen(Screen):
     scraper_status = StringProperty("Scraper: [color={label_color}]Offline[/color]".format(label_color=RED_TEXT))
 
     scraper = None
+    scraper_thread = None
 
     selectors = ListProperty()
 
-    def launch(self):
+    stop = threading.Event()
+
+    def start_second_thread(self, target_function, *args):
+        threading.Thread(target=target_function, args=args).start()
+
+    def launch(self, *args, **kwargs):
+
+        self.start_second_thread(self._launch)
+
+    def _launch(self):
         self.scraper = NomadDriver(service_folder=os.path.realpath("scraper/resources"))
         self.scraper.goto("http://books.toscrape.com/")
         self.scraper.maximize_window()
         self.scraper_online_ = True
+        return None
 
     def shutdown(self):
         self.scraper.shutdown()

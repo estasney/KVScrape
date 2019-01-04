@@ -47,8 +47,10 @@ class NomadDriver(object):
     def __init__(self, service_folder):
         self.service_folder = os.path.realpath(service_folder)
         self.service_path = self.select_chromedriver(self.service_folder)
-        self.driver = self.start_driver()
+        self.start_driver()
         self.wait = WebDriverWait(self.driver, 20)
+
+
 
     @property
     def driver_options(self):
@@ -96,8 +98,8 @@ class NomadDriver(object):
         return results
 
     def start_driver(self):
-        driver = webdriver.Chrome(executable_path=self.service_path, chrome_options=self.driver_options)
-        return driver
+        self.driver = webdriver.Chrome(executable_path=self.service_path, chrome_options=self.driver_options)
+        print("Driver now open")
 
     def goto(self, url):
         self.driver.get(url)
