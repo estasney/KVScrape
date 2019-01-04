@@ -1,9 +1,11 @@
 from kivy.uix.accordion import AccordionItem, Accordion
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.textinput import TextInput
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ListProperty, AliasProperty
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock, mainthread
@@ -239,6 +241,16 @@ class SelectorPopup(Popup):
         self.dismiss()
 
 
+class ResultsContainer(RelativeLayout):
+
+    results_container = ObjectProperty()
+
+    def set_results(self, results):
+        s = "\n".join([r.strip() for r in results])
+        self.results_container.text = s
+
+
+
 class SelectorPreviewPopup(Popup):
 
     results = ListProperty()
@@ -247,7 +259,6 @@ class SelectorPreviewPopup(Popup):
 
     results_box = ObjectProperty()
     results_count = ObjectProperty()
-
 
     def __init__(self, **kwargs):
         super(SelectorPreviewPopup, self).__init__(**kwargs)
@@ -260,16 +271,10 @@ class SelectorPreviewPopup(Popup):
 
     def populate_results(self):
         self.results_box.clear_widgets()
-
-        layout = GridLayout(cols=1, spacing=0, size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
-        for r in self.results:
-            l = Label(text=r, font_size=15, size_hint_y=None)
-            layout.add_widget(l)
+        results_container = ResultsContainer()
+        results_container.set_results(self.results)
         box = self.results_box
-        scroll_view = ScrollView(size_hint=(1, 1))
-        scroll_view.add_widget(layout)
-        box.add_widget(scroll_view)
+        box.add_widget(results_container)
 
 
 
