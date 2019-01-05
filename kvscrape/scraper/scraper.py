@@ -41,7 +41,7 @@ Custom Selenium Waits
 
 class NomadDriver(object):
 
-    TEXT = 'text'
+    TEXT = 'innerText'
     URL = 'href'
 
     def __init__(self, service_folder):
@@ -87,6 +87,8 @@ class NomadDriver(object):
         return elements
 
     def extract_from_elements(self, elements, attribute):
+        if attribute == 'text':
+            attribute = "innerText"
         if not elements:
             return None
         results = []

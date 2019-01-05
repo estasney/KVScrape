@@ -61,6 +61,14 @@ class ScraperScreen(Screen):
         self.scraper = None
         self.scraper_online_ = False
 
+    def get_page(self, url):
+        self.start_second_thread(target_function=self._get_page, url=url)
+        return
+
+    def _get_page(self, url):
+        self.scraper.goto(url)
+        return
+
     def on_scraper_online_(self, *args):
         if self.scraper_online_:
             self.scraper_status = "Scraper: [color={label_color}]Online[/color]".format(label_color=self.GREEN_TEXT)
@@ -246,8 +254,12 @@ class ResultsContainer(RelativeLayout):
     results_container = ObjectProperty()
 
     def set_results(self, results):
-        s = "\n".join([r.strip() for r in results])
-        self.results_container.text = s
+        results = list(filter(lambda x: x is not None, results))
+        if not results:
+            self.results_container.text = "No Text Found"
+        else:
+            s = "\n".join([r.strip() for r in results])
+            self.results_container.text = s
 
 
 
