@@ -7,6 +7,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 import platform
 import glob
 import os
+import re
 
 
 from selenium.webdriver.common.by import By
@@ -49,6 +50,7 @@ class NomadDriver(object):
         self.service_path = self.select_chromedriver(self.service_folder)
         self.driver = self.start_driver()
         self.wait = WebDriverWait(self.driver, 20)
+
 
     @property
     def driver_options(self):
@@ -100,8 +102,17 @@ class NomadDriver(object):
     def start_driver(self):
         return webdriver.Chrome(executable_path=self.service_path, chrome_options=self.driver_options)
 
+    def validate_url(self, url):
+        if re.match(r"((http)s?://)", url):
+            return url
+        else:
+            return "https://{}".format(url)
+
     def goto(self, url):
+        url = self.validate_url(url)
         self.driver.get(url)
+
+
 
     def maximize_window(self):
         if self.driver:
