@@ -1,1 +1,1 @@
-from .scraper_app import *
+from .scraper import NomadDriver

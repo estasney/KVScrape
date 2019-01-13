@@ -21,6 +21,9 @@ GREEN_TEXT = "#21fc0d"
 RED_TEXT = "#fe420f"
 
 
+class StatusScreen(Screen):
+
+
 class ScraperScreen(Screen):
 
     GREEN_TEXT = "#21fc0d"
@@ -224,6 +227,11 @@ class SelectorView(AccordionItem):
         return App.get_running_app().scraper
 
 
+class ScraperSteps(AccordionItem):
+
+    TITLE = "Steps"
+
+
 class SelectorPopup(Popup):
 
     selector_text = StringProperty()
@@ -287,7 +295,6 @@ class SelectorPreviewPopup(Popup):
         results_container.set_results(self.results)
         box = self.results_box
         box.add_widget(results_container)
-
 
 
 

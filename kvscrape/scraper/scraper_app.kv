@@ -1,14 +1,8 @@
 #:import Factory kivy.factory.Factory
 #:import ListAdapter kivy.adapters.listadapter.ListAdapter
-<ScraperScreen>:
-    name: 'scraper'
-    id: scraper_root
-    scraper_actions: scraper_actions
-    scraper_actions_scraper: scraper_view
-    scraper_actions_selector: selector_view
-    scraper_status_bar: scraper_status_bar
-
-
+<StatusScreen>:
+    name: 'status'
+    id: status_screen
 
     BoxLayout:
         orientation: 'vertical'
@@ -35,11 +29,6 @@
             size: self.size
             pos: self.pos
             orientation: 'vertical'
-            scraper_view: scraper_view
-            selector_view: selector_view
-            extraction_accordion: extraction_accordion
-            steps_accordion: steps_accordion
-
             ScraperView:
                 id: scraper_view
                 title: self.TITLE
@@ -53,9 +42,6 @@
                         orientation: 'horizontal'
                         padding: 10
                         spacing: 20
-
-
-
 
                         GreenButton:
 
@@ -81,6 +67,7 @@
 
 
 
+
                         Label:
                             text: "Goto: "
                             size_hint: 0.2, 0.25
@@ -100,55 +87,7 @@
                             on_release: root.get_page(goto_input.text)
                             pos_hint: {'top': 0.5}
 
-            SelectorView:
-                id: selector_view
-                disabled: True if root.scraper_online_ is False else False
-                title: self.TITLE
 
-                BoxLayout:
-                    orientation: 'horizontal'
-                    padding: 10
-                    spacing: 20
-
-                    Spinner:
-                        id: selector_columns
-                        text: "{}: {}".format(root.selectors[-1].column_num, root.selectors[-1].column_name) if root.selectors else ""
-                        values: [s.value for s in root.selectors]
-                        size_hint: 0.5, 0.1
-                        pos_hint: {'top': 1}
-
-
-                    GreenButton:
-                        id: new_selector
-                        text: "New"
-                        size_hint: 0.15, 0.1
-                        pos_hint: {'top': 1}
-                        on_release: root.selector_popup(col_name="{}: ".format(len(root.selectors)), kind='new')
-
-                    GreenButton:
-                        id: new_col
-                        text: "Edit"
-                        disabled: True if selector_columns.text == "" else False
-                        size_hint: 0.15, 0.1
-                        pos_hint: {'top': 1}
-                        on_release: root.selector_popup(col_name=selector_columns.text)
-
-                    GreenButton:
-                        id: new_col
-                        text: "Preview"
-                        disabled: True if selector_columns.text == "" else False
-                        size_hint: 0.15, 0.1
-                        pos_hint: {'top': 1}
-                        on_release: root.preview_popup(col_name=selector_columns.text)
-
-            AccordionItem:
-                id: extraction_accordion
-                disabled: True if root.scraper_online_ is False else False
-                title: "Extraction"
-            AccordionItem:
-                id: steps_accordion
-                disabled: True if root.scraper_online_ is False else False
-                title: "Steps"
 
         ScraperStatusBar:
             id: scraper_status_bar
@@ -177,6 +116,10 @@
                     text: root.scraper_status
                     markup: True
                     font_size: 20
+
+
+
+
 
 
 <SelectorPopup>:
