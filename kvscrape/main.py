@@ -96,7 +96,9 @@ class MyActionView(Screen):
 
         def get_field_data(child):
             keys = ['field_name', 'field_role', 'field_value']
-            return {k: getattr(child, k, None) for k in keys}
+            data = {k: getattr(child, k, None) for k in keys}
+            data['cname'] = child.__class__
+            return data
 
         data = list(map(get_field_data, self.available_options.children))
         data = {'index': self.index, 'action': selected, 'target': target, 'facets': data}
@@ -114,6 +116,14 @@ class ActionItem(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def edit_action(self, *args):
+        for widget in self.walk_reverse():
+            if getattr(widget, 'name', '') == 'actions':
+                widget.edit_action(self.index)
+
+
+
+
 
 class Actions(Screen):
 
@@ -123,7 +133,7 @@ class Actions(Screen):
     def on_data(self, *args):
         self.action_layout.clear_widgets()
         for i, d in enumerate(self.data):
-            w = ActionItem(action_text=d.get('action'), index=i)
+            w = ActionItem(action_text="{}: {}".format(d.get('action', ''), d.get('target', '')), index=i)
             self.action_layout.add_widget(w)
 
     def new_data(self, data, *args):
@@ -159,7 +169,6 @@ class Actions(Screen):
     def add_action(self, *args, **kwargs):
         self.data.append({'index': len(self.data), 'action': '', 'target': '', 'facets': []})
         self.edit_action(index=len(self.data) - 1)
-
 
 
 class ScraperApp(App):
